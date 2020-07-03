@@ -8,6 +8,7 @@ This module includes:
      - hash table implementation
      - 5 Examples of increasing complexity
 """
+#Import files
 from collections import deque
 import random
 
