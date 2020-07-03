@@ -1,11 +1,8 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Created on Tue Sep  3 17:01:00 2019
 vanilla breadth first search
 - relies on  Puzzle8.py module
-
-@author: Milos Hauskrecht (milos)
 """
 
 # //Deepika Srinivasan
@@ -17,7 +14,7 @@ import Puzzle8
 from Puzzle8 import*
 
  ### ++++++++++++++++++++++++++++++++++++++++++++++++++++
- ### A_Star_Search_stats 
+ ### A_Star_Search_stats
 
 
 def A_Star_Search_stats():
@@ -35,27 +32,27 @@ max_queue_length=0;
  #### A_Star_Search
 
 def A_Star_Search(problem):
-   
+
     global nodes_expanded
     global nodes_generated
     global max_queue_length
-    
+
     #list to sort the queue based on ascending f value(i.e f=h+g)
     list_whole_queue=[]
-    
+
     queue =deque([])
     root=TreeNode(problem,problem.initial_state)
-    queue.append(root) 
-    
+    queue.append(root)
+
     while len(queue)>0:
         if max_queue_length<len(queue):
             max_queue_length=len(queue)
-            
+
         next=queue.popleft()
-        
+
         #nodes choosen for expansion from queue so increment the counter
         nodes_expanded+=1
-        
+
         if next.goalp():
             del(queue)
             return next.path()
@@ -64,33 +61,33 @@ def A_Star_Search(problem):
             for new_node in new_nodes:
                 #new nodes generated so increment the counter
                 nodes_generated+=1
-                
+
                 #add the node to the queue
                 queue.append(new_node)
-            
+
             #make a list of the queue generated so we can sort the list on f values
             list_whole_queue=list(queue)
-            
+
             #sort the list based on f value
             list_whole_queue.sort(key=lambda x: x.f, reverse=False)
 
             #clear the queue so we dont add duplicate nodes back in queue
             queue.clear()
-            
+
             #copy the sorted list back into queue
             for tree in list_whole_queue:
                 queue.append(tree)
-            
-            #Check the queue on whether the tree is sorted based on f value 
+
+            #Check the queue on whether the tree is sorted based on f value
             #for tree in queue:
             #    tree.print_state()
             #    print("Tree f value found is",tree.f)
-            
-            
+
+
     print('No solution')
     return NULL
 
-problem=Puzzle8_Problem(Example1) 
+problem=Puzzle8_Problem(Example1)
 output=  A_Star_Search(problem)
 length_solution_path=len(output)
 print('Solution Example 1:')
@@ -99,7 +96,7 @@ A_Star_Search_stats()
 
 # wait = input("PRESS ENTER TO CONTINUE.")
 
-# problem=Puzzle8_Problem(Example2) 
+# problem=Puzzle8_Problem(Example2)
 # output=  A_Star_Search(problem)
 # length_solution_path=len(output)
 # print('Solution Example 2:')
@@ -108,7 +105,7 @@ A_Star_Search_stats()
 
 # wait = input("PRESS ENTER TO CONTINUE.")
 
-# problem=Puzzle8_Problem(Example3) 
+# problem=Puzzle8_Problem(Example3)
 # output=  A_Star_Search(problem)
 # length_solution_path=len(output)
 # print('Solution Example 3:')
@@ -117,7 +114,7 @@ A_Star_Search_stats()
 
 # wait = input("PRESS ENTER TO CONTINUE.")
 
-# problem=Puzzle8_Problem(Example4) 
+# problem=Puzzle8_Problem(Example4)
 # output=  A_Star_Search(problem)
 # length_solution_path=len(output)
 # print('Solution Example 4:')
@@ -125,7 +122,7 @@ A_Star_Search_stats()
 # A_Star_Search_stats()
 
 # Solution to Example 5 may take too long to calculate using vanilla bfs
-# problem=Puzzle8_Problem(Example5) 
+# problem=Puzzle8_Problem(Example5)
 # output=  A_Star_Search(problem)
 # length_solution_path=len(output)
 # print('Solution Example 5:')
