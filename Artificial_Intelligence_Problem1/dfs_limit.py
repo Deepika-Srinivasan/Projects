@@ -7,19 +7,16 @@ vanilla breadth first search
 
 @author: Milos Hauskrecht (milos)
 
-//Deepika Srinivasan
-//700693073
-//Certificate of Authenticity: “I certify that the codes/answers of this assignment are entirely my own work.”
+//Deepika Srinivasan 
+//700693073 
+//Certificate of Authenticity: “I certify that the codes/answers of this assignment are entirely my own work.” 
 """
-#git test
-#test branch comment
-# i want to check the new chages
+
 import Puzzle8
 from Puzzle8 import*
 
-
  #### ++++++++++++++++++++++++++++++++++++++++++++++++++++
- #### breadth_first_search_stats
+ #### breadth_first_search_stats 
 
 def breadth_first_search_stats():
     #print('Stats')
@@ -28,68 +25,69 @@ def breadth_first_search_stats():
     print('Maximum queue length:' ,max_queue_length)
     print('Length of solution Path:' ,length_solution_path)
 
-
+    
  #### ++++++++++++++++++++++++++++++++++++++++++++++++++++
- #### check_cyclic_repeats
-
-def check_cyclic_repeats(node):
-    global parents
-    return node in parents
-
- #### ++++++++++++++++++++++++++++++++++++++++++++++++++++
- #### breadth first search cycles
-
+ #### breadth first search cycles         
+        
 
 nodes_expanded=0;
 nodes_generated=0;
 max_queue_length=0;
-parents={()}
+max_queue_length_before_deletion=0;
 
-def breadth_first_search_cycles(problem):
+def depth_first_search_limit(problem,limit):
     global nodes_expanded
     global nodes_generated
     global max_queue_length
-    global parents
-
+    global max_queue_length_before_deletion
+    my_hash=HashTable()
+    
     queue =deque([])
     root=TreeNode(problem,problem.initial_state)
     queue.append(root)
-
+    
+    #Add root into hashtable
+    my_hash.add_hash(root.state)
+     
     while len(queue)>0:
         if max_queue_length<len(queue):
             max_queue_length=len(queue)
+        
         next=queue.popleft()
-
+                
         if next.goalp():
+            if max_queue_length_before_deletion<len(queue):
+                max_queue_length_before_deletion=len(queue)
             del(queue)
+            my_hash.delete_hash()
             return next.path()
-
         else:
-            #make sure current state is not same like its parents and not entering a cycle
-            if not check_cyclic_repeats(next.state):
-                #print("Node not in parents so expanding it")
-                parents.add(next.state) #add this current state in Parent set
+            #Check whether current node is within limit
+            if next.g<limit:
                 new_nodes=next.generate_new_tree_nodes()
-                nodes_expanded+=1 #increment counter as this node is selected for expansion
+                nodes_expanded+=1 #increment counter as this node is expanded
                 for new_node in new_nodes:
-                    queue.append(new_node)
                     nodes_generated+=1 #increment counter for every new node generated
-
-
+                    
+                    #Only if my new node is not already in myhash,add it in queue and the hashtable as well
+                    if not my_hash.in_hashp(new_node.state):
+                        queue.appendleft(new_node)
+                        my_hash.add_hash(new_node.state,my_hash.get_hash_value(next.state)+1)
+                                            
     print('No solution')
     return NULL
-
-problem=Puzzle8_Problem(Example1)
-output=  breadth_first_search_cycles(problem)
+  
+problem=Puzzle8_Problem(Example1) 
+output=  depth_first_search_limit(problem,10)
 print('Solution Example 1:')
 print_path(output)
 length_solution_path=len(output)
 breadth_first_search_stats()
 
-#wait = input("PRESS ENTER TO CONTINUE.")
+# wait = input("PRESS ENTER TO CONTINUE.")
 
-# problem=Puzzle8_Problem(Example2)
-# output=  breadth_first_search_cycles(problem)
+# problem=Puzzle8_Problem(Example2) 
+# output=  depth_first_search_limit(problem,10)
 # print('Solution Example 2:')
 # print_path(output)
 # length_solution_path=len(output)
@@ -97,8 +95,8 @@ breadth_first_search_stats()
 
 # wait = input("PRESS ENTER TO CONTINUE.")
 
-# problem=Puzzle8_Problem(Example3)
-# output=  breadth_first_search_cycles(problem)
+# problem=Puzzle8_Problem(Example3) 
+# output=  depth_first_search_limit(problem,10)
 # print('Solution Example 3:')
 # print_path(output)
 # length_solution_path=len(output)
@@ -106,15 +104,15 @@ breadth_first_search_stats()
 
 # wait = input("PRESS ENTER TO CONTINUE.")
 
-# problem=Puzzle8_Problem(Example4)
-# output=  breadth_first_search_cycles(problem)
+# problem=Puzzle8_Problem(Example4) 
+# output=  depth_first_search_limit(problem,10)
 # print('Solution Example 4:')
 # print_path(output)
 # length_solution_path=len(output)
 # breadth_first_search_stats()
 
 # Solution to Example 5 may take too long to calculate using vanilla bfs
-# problem=Puzzle8_Problem(Example5)
-# output=  breadth_first_search_cycles(problem)
+# problem=Puzzle8_Problem(Example5) 
+# output=  depth_first_search_limit(problem,10)
 # print('Solution Example 5:')
 # print_path(output)
