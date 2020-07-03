@@ -8,11 +8,6 @@ This module includes:
      - hash table implementation
      - 5 Examples of increasing complexity
 """
-
-# //Deepika Srinivasan
-# // 700693073
-# //Certificate of Authenticity: “I certify that the codes/answers of this assignment are entirely my own work.”
-
 from collections import deque
 import random
 

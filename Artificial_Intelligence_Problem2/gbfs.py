@@ -4,12 +4,6 @@
 vanilla breadth first search
 - relies on  Puzzle8.py module
 """
-
-# //Deepika Srinivasan
-# // 700693073
-# //Certificate of Authenticity: “I certify that the codes/answers of this assignment are entirely my own work.”
-
-
 import Puzzle8
 from Puzzle8 import*
 
