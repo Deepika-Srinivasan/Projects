@@ -1,15 +1,8 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Created on Tue Sep  3 17:01:00 2019
 vanilla breadth first search
 - relies on  Puzzle8.py module
-
-@author: Milos Hauskrecht (milos)
-
-//Deepika Srinivasan
-//700693073
-//Certificate of Authenticity: “I certify that the codes/answers of this assignment are entirely my own work.”
 """
 #git test
 #test branch comment
