@@ -1,0 +1,186 @@
+#Load data and check
+library("readxl")
+data<- read_excel("C:\\Users\\BalaDeepi\\Desktop\\default of credit card clients.xls")
+
+#-------------------DATA Analysis-------------------------------------------------------------
+str(data)
+dim(data)
+fix(data)
+attach(data)
+summary(data)
+
+
+#------------------Data Cleansing-------------------------------------------------------------
+data$default_payment_next_month<-as.factor(data$default_payment_next_month)
+str(data)
+
+#---------------LIMIT_BAL------------------------------------
+#Histogram of Limit_BAL
+hist(data$LIMIT_BAL,label=T,col=rainbow(10),main="LIMIT_BAL")
+box()
+
+
+#Limit_bal Vs Default Payment
+boxplot(LIMIT_BAL~default_payment_next_month, data = data, col=c("green","red"),main="LIMIT_BAL Vs Default Payment")
+
+
+#density plot of LIMIT_BAL across Default Payment
+level1 = data[data$default_payment_next_month== "1", ]
+level2 = data[data$default_payment_next_month == "0", ]
+dv3 = density(level1$LIMIT_BAL)
+dv4 = density(level2$LIMIT_BAL)
+plot(range(dv3$x, dv4$x), range(dv3$y, dv4$y), type = "n", xlab = "LIMIT_BAL at Level1(Default-red) and LIMIT_BAL at Level0(Non-default-blue)", 
+    ylab = "Density")
+lines(dv3, col = "red")
+lines(dv4, col = "blue")
+
+
+#--------------Age--------------------------------------------
+#Histogram of Age
+hist(data$AGE,label=T,col=rainbow(10),main="Age")
+box()
+
+#Age Vs Default Payment
+boxplot(AGE ~ default_payment_next_month, data=data, main="AGE across Default Payment",col=rainbow(2))  
+
+
+#-----------SEX-----------------------------------------------
+table(data$SEX)
+barplot(table(data$SEX),col=rainbow(2),legend=c("Male","Female"),main="Gender")
+
+#SEX vs Default Payment 
+bartable = table(data$SEX,data$default_payment_next_month)  
+barplot(bartable, beside = TRUE, legend = levels(unique(data$SEX)),main="Gender Vs Default Payment",col=rainbow(2))  
+
+#------------Education-----------------------------------------
+table(data$EDUCATION)
+barplot(table(data$EDUCATION),col=rainbow(10),legend=c("","graduate school","university","high school","others"),main="Education")# 0,5,6 irrelevant data shown 
+
+#Education Vs Default Payment 
+plot(table(data$EDUCATION,data$default_payment_next_month),main="Education Vs Default Payment",xlab="Education:1=Grad; 2=Univ;3=High school;4=Others",ylab="Default Payment:1 Default,0 Non-default",col=rainbow(10))
+bartable = table(data$EDUCATION,data$default_payment_next_month)  ## get the cross tab
+
+barplot(bartable, beside = TRUE, legend=levels(unique(data$EDUCATION)),main="Education Vs Default Payment",col = rainbow(7),legend.text=c("","Grad","Univ","High school","Others","",""))  ## plot 
+
+#Gender,Education Vs Default Payment
+#Gender Vs Education-Report
+par(mfrow = c(1, 2))
+bar0table = table(level2$SEX, level2$EDUCATION)
+barplot(bar0table, beside = TRUE, main = "Default=0",xlab="Education levels",ylab="Male and Female count",col=rainbow(2),legend=c("Male","Female"))
+bar2table = table(level1$SEX, level1$EDUCATION)
+barplot(bar2table, beside = TRUE, main = "Default=1", xlab="Education levels",ylab="Male and Female count",col=rainbow(2),legend=c("Male","Female"))
+
+#-----------------Marriage-----------------------------------------------------
+table(data$MARRIAGE)
+barplot(table(data$MARRIAGE),col=rainbow(4),legend=c("","Married","Single","Others"),main="Marriage") #0 is irrelevant
+
+#Marriage Vs Default Payment
+table(data$MARRIAGE,data$default_payment_next_month)
+bartable = table(data$MARRIAGE,data$default_payment_next_month)  
+barplot(bartable, legend = levels(unique(data$MARRIAGE)),main="MARRIAGE Vs Default Payment",col=rainbow(4),legend.text=c("","Married","Single","Others"))  ## stacked
+
+
+#------------------Default Payment------------------------------------------
+table(data$default_payment_next_month)
+barplot(table(data$default_payment_next_month),col=c("green","red"),legend=c("No:Non-Default","Yes:Default"),main="Default Payment")
+
+#-----------------Bill Amt--------------------------------------------------
+#Bill_amt trend analysis
+hist(data$BILL_AMT1,labels=T,main="BIL_AMT1",col=rainbow(10))
+par(mfrow = c(2, 3))
+hist(data$BILL_AMT1)
+hist(data$BILL_AMT2)
+hist(data$BILL_AMT3)
+hist(data$BILL_AMT4)
+hist(data$BILL_AMT5)
+hist(data$BILL_AMT6)
+
+summary(data$BILL_AMT1)
+#IQR(data$BILL_AMT1) # Q3-Q1 .Any values below 1.5(IQR) or above Q3 are outliers marked as rounds
+#Max - 964511 is an outlier so 
+
+#Boxplot of Bill_amt1
+boxplot(data$BILL_AMT1,main="BILL_AMT1",col=("blue"))
+
+#Compare all Bill_amt variables
+par(mfrow = c(1, 6))
+boxplot(data$BILL_AMT1,main="BILL_AMT1")
+boxplot(data$BILL_AMT2,main="BILL_AMT2")
+boxplot(data$BILL_AMT3,main="BILL_AMT3")
+boxplot(data$BILL_AMT4,main="BILL_AMT4")
+boxplot(data$BILL_AMT5,main="BILL_AMT5")
+boxplot(data$BILL_AMT6,main="BILL_AMT6")
+
+#----------PAY_0----------------------------------------------------
+#PAY_0 Trend
+table(data$PAY_0)
+hist(data$PAY_0,breaks=10,labels=T,main="PAY_0",col=rainbow(11))
+barplot(data$PAY_0,main="PAY_0")
+
+
+#Comparison on all Pay cycle-repayment status 
+par(mfrow = c(2, 3))
+hist(data$PAY_0,breaks=10,labels=T,main="PAY_0",col=rainbow(11))
+hist(data$PAY_2,breaks=10,labels=T,main="PAY_2",col=rainbow(11))
+hist(data$PAY_3,breaks=10,labels=T,main="PAY_3",col=rainbow(11))
+hist(data$PAY_4,breaks=10,labels=T,main="PAY_4",col=rainbow(11))
+hist(data$PAY_5,breaks=10,labels=T,main="PAY_5",col=rainbow(11))
+hist(data$PAY_6,breaks=10,labels=T,main="PAY_6",col=rainbow(11))
+
+#PAY0 Vs Default Payment-report
+table(data$PAY_0,data$default_payment_next_month)
+bartable3 = table(data$PAY_0,data$default_payment_next_month)  ## get the cross tab
+barplot(bartable3, beside = TRUE, legend = levels(unique(data$PAY_0)),main="PAY_0 Vs Default Payment",col=rainbow(11),legend.text=c("-2:Irrelevant","pay duly","0:Irrelevant","Payment delay:1 month","Payment delay:2 month"
+,"Payment delay:3 month","Payment delay:4 month","Payment delay:5 month","Payment delay:6 month","Payment delay:7 month","Payment delay:8 month","Payment delay:>=9 month"))  ## plot 
+
+
+#PAY2 Vs Default Payment-report
+table(data$PAY_2,data$default_payment_next_month)
+bartable_PAY2 = table(data$PAY_2,data$default_payment_next_month)  ## get the cross tab
+barplot(bartable_PAY2, beside = TRUE, legend = levels(unique(data$PAY_2)),main="PAY_2 Vs Default Payment",col=rainbow(11),legend.text=c("-2:Irrelevant","pay duly","0:Irrelevant","Payment delay:1 month","Payment delay:2 month"
+,"Payment delay:3 month","Payment delay:4 month","Payment delay:5 month","Payment delay:6 month","Payment delay:7 month","Payment delay:8 month","Payment delay:>=9 month"))  ## plot 
+  
+
+#PAY3 Vs Default Payment-report
+table(data$PAY_3,data$default_payment_next_month)
+bartable_PAY3 = table(data$PAY_3,data$default_payment_next_month)  ## get the cross tab
+barplot(bartable_PAY3, beside = TRUE, legend = levels(unique(data$PAY_3)),main="PAY_3 Vs Default Payment",col=rainbow(11),legend.text=c("-2:Irrelevant","pay duly","0:Irrelevant","Payment delay:1 month","Payment delay:2 month"
+,"Payment delay:3 month","Payment delay:4 month","Payment delay:5 month","Payment delay:6 month","Payment delay:7 month","Payment delay:8 month","Payment delay:>=9 month"))  ## plot 
+ 
+
+#PAY4 Vs Default Payment-report
+table(data$PAY_4,data$default_payment_next_month)
+bartable_PAY4 = table(data$PAY_4,data$default_payment_next_month)  ## get the cross tab
+barplot(bartable_PAY4, beside = TRUE, legend = levels(unique(data$PAY_4)),main="PAY_4 Vs Default Payment",col=rainbow(11),legend.text=c("-2:Irrelevant","pay duly","0:Irrelevant","Payment delay:1 month","Payment delay:2 month"
+,"Payment delay:3 month","Payment delay:4 month","Payment delay:5 month","Payment delay:6 month","Payment delay:7 month","Payment delay:8 month","Payment delay:>=9 month"))  ## plot 
+  
+
+#PAY5 Vs Default Payment-report
+table(data$PAY_5,data$default_payment_next_month)
+bartable_PAY5 = table(data$PAY_5,data$default_payment_next_month)  ## get the cross tab
+barplot(bartable_PAY5, beside = TRUE, legend = levels(unique(data$PAY_5)),main="PAY_5 Vs Default Payment",col=rainbow(11),legend.text=c("-2:Irrelevant","pay duly","0:Irrelevant","Payment delay:1 month","Payment delay:2 month"
+,"Payment delay:3 month","Payment delay:4 month","Payment delay:5 month","Payment delay:6 month","Payment delay:7 month","Payment delay:8 month","Payment delay:>=9 month"))  ## plot 
+ 
+
+#PAY6 Vs Default Payment-report
+table(data$PAY_6,data$default_payment_next_month)
+bartable_PAY6 = table(data$PAY_6,data$default_payment_next_month)  ## get the cross tab
+barplot(bartable_PAY6, beside = TRUE, legend = levels(unique(data$PAY_6)),main="PAY_6 Vs Default Payment",col=rainbow(11),legend.text=c("-2:Irrelevant","pay duly","0:Irrelevant","Payment delay:1 month","Payment delay:2 month"
+,"Payment delay:3 month","Payment delay:4 month","Payment delay:5 month","Payment delay:6 month","Payment delay:7 month","Payment delay:8 month","Payment delay:>=9 month"))  ## plot 
+   
+#------------------------PAY_AMT----------------------------------------
+#PAY_AMT1 Trend
+hist(data$PAY_AMT1,labels=T,main="PAY_AMT1",col=rainbow(10))
+
+#Compare all the Pay_Amt variables
+par(mfrow = c(2, 3))
+hist(data$PAY_AMT1 ,main="PAY_AMT1",col=rainbow(10))
+hist(data$PAY_AMT2 ,main="PAY_AMT2",col=rainbow(10))
+hist(data$PAY_AMT3 ,main="PAY_AMT3",col=rainbow(10))
+hist(data$PAY_AMT4 ,main="PAY_AMT4",col=rainbow(10))
+hist(data$PAY_AMT5 ,main="PAY_AMT5",col=rainbow(10))
+hist(data$PAY_AMT6 ,main="PAY_AMT6",col=rainbow(10))
+
+
+
+#*************END OF DATA ANALYSIS*******************************************

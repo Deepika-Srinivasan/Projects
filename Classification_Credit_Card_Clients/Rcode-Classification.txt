@@ -1,0 +1,827 @@
+#Load data
+library("readxl")
+data<- read_excel("C:\\Users\\BalaDeepi\\Desktop\\default of credit card clients.xls")
+
+#*****************Data Analysis**************************************************************
+str(data)
+dim(data)
+fix(data)
+attach(data)
+summary(data)
+
+#*****************Data cleansing**************************************************************
+#Convert Default payment as factor 
+data$default_payment_next_month<-as.factor(data$default_payment_next_month)
+str(data)
+
+
+
+#**********************CLASSIFICATION*********************************************************
+#***********************Decision Trees********************************************************
+attach(data)
+library(tree)
+str(data)
+dim(data)
+fix(data)
+
+#**********************Data Split for Training and Test***************************************
+#Training and test data
+set.seed(123)
+train=sample(1:nrow(data),20000)
+data.train=data[train,]
+dim(data.train)
+data.test=data[-train,]
+dim(data.test)
+default_payment_next_month.train=default_payment_next_month[train]
+default_payment_next_month.test=default_payment_next_month[-train]
+
+#tree fit to training data
+tree.data<-tree(default_payment_next_month~.,data=data,subset=train) 
+summary(tree.data)
+tree.data
+plot(tree.data)
+text(tree.data,pretty=0)
+tree.data
+
+#Training error 
+tree.predict=predict(tree.data,data.train,type="class")
+table(tree.predict,default_payment_next_month.train)
+mean(tree.predict!=default_payment_next_month.train)
+
+#Test error 
+tree.predict_test=predict(tree.data,data.test,type="class")
+table(tree.predict_test,default_payment_next_month.test)
+mean(tree.predict_test!=default_payment_next_month.test)
+
+#Cross validation -optimal tree size 4 and 2 
+set.seed(123)
+cv.data=cv.tree(tree.data,FUN=prune.misclass)
+names(cv.data)
+cv.data
+plot(cv.data$size,cv.data$dev,type="b")
+
+#Pruning
+set.seed(123)
+prune.data=prune.misclass(tree.data,best=4)
+plot(prune.data)
+text(prune.data,pretty=0)
+#Training error after pruning
+tree_train.pred=predict(prune.data,data.train,type="class")
+table(tree_train.pred,default_payment_next_month.train)
+mean(tree_train.pred!=default_payment_next_month.train)
+#Testing error after pruning
+tree.pred=predict(prune.data,data.test,type="class")
+table(tree.pred,default_payment_next_month.test)
+mean(tree.pred!=default_payment_next_month.test)
+
+set.seed(123)
+prune_best2.data=prune.misclass(tree.data,best=2)
+plot(prune_best2.data)
+text(prune_best2.data,pretty=0)
+#Training error after pruning
+tree_train.pred=predict(prune_best2.data,data.train,type="class")
+table(tree_train.pred,default_payment_next_month.train)
+mean(tree_train.pred!=default_payment_next_month.train) 
+#Testing error after pruning
+tree.pred=predict(prune_best2.data,data.test,type="class")
+table(tree.pred,default_payment_next_month.test)
+mean(tree.pred!=default_payment_next_month.test) 
+
+#-------------------------------------Bagging-----------------------------------------------------------
+library(randomForest)
+dim(data)
+
+#Bagging with default mtry and ntrees=500
+set.seed(123)
+tree_randomforest_default1.data=randomForest(default_payment_next_month~.,data,subset=train, ntree=500)
+print(tree_randomforest_default1.data)
+plot(tree_randomforest_default1.data)
+
+table(predict(tree_randomforest_default1.data),data.train$default_payment_next_month)
+tree.pred=predict(tree_randomforest_default1.data,data.test,type="class")
+table(tree.pred,default_payment_next_month.test)
+mean(tree.pred!=default_payment_next_month.test)
+
+#Bagging with default mtry and ntrees=1500
+set.seed(123)
+tree_randomforest_default2.data=randomForest(default_payment_next_month~.,data,subset=train, ntree=1500)
+print(tree_randomforest_default2.data)
+plot(tree_randomforest_default2.data)
+
+table(predict(tree_randomforest_default2.data),data.train$default_payment_next_month)
+tree.pred=predict(tree_randomforest_default2.data,data.test,type="class")
+table(tree.pred,default_payment_next_month.test)
+mean(tree.pred!=default_payment_next_month.test)
+
+
+#Bagging with mtry=24 and ntrees=500
+set.seed(123)
+tree_randomforest_24.data=randomForest(default_payment_next_month~.,data,subset=train, ntree=500, mtry=24)
+print(tree_randomforest_24.data)
+plot(tree_randomforest_24.data)
+
+table(predict(tree_randomforest_24.data),data.train$default_payment_next_month)
+tree.pred=predict(tree_randomforest_24.data,data.test,type="class")
+table(tree.pred,default_payment_next_month.test)
+mean(tree.pred!=default_payment_next_month.test) 
+
+#Bagging with mtry=24 and ntrees=1500
+set.seed(123)
+tree_randomforest_24_1500.data=randomForest(default_payment_next_month~.,data,subset=train, ntree=1500, mtry=24)
+print(tree_randomforest_24_1500.data)
+plot(tree_randomforest_24_1500.data)
+
+table(predict(tree_randomforest_24_1500.data),data.train$default_payment_next_month)
+tree.pred=predict(tree_randomforest_24_1500.data,data.test,type="class")
+table(tree.pred,default_payment_next_month.test)
+mean(tree.pred!=default_payment_next_month.test) 
+
+
+#-----------------RANDOMFOREST-----------------------------------------------
+
+Randomforest with sqrt(25)=mtry=4
+tree_randomforest_4.data=randomForest(default_payment_next_month~.,data,subset=train, ntree=500, mtry=4)
+print(tree_randomforest_4.data)
+plot(tree_randomforest_4.data)
+tree.pred=predict(tree_randomforest_4.data,data.test,type="class")
+table(tree.pred,default_payment_next_month.test)
+mean(tree.pred!=default_payment_next_month.test) #0.1765
+
+Randomforest with sqrt(25)=mtry=5
+tree_randomforest_5.data=randomForest(default_payment_next_month~.,data,subset=train, ntree=500, mtry=5)
+print(tree_randomforest_5.data)
+tree.pred=predict(tree_randomforest_5.data,data.test,type="class")
+table(tree.pred,default_payment_next_month.test)
+mean(tree.pred!=default_payment_next_month.test) #0.1764
+
+Randomforest with sqrt(25)=mtry=6
+tree_randomforest_6.data=randomForest(default_payment_next_month~.,data,subset=train, ntree=500, mtry=6)
+print(tree_randomforest_6.data)
+tree.pred=predict(tree_randomforest_6.data,data.test,type="class")
+table(tree.pred,default_payment_next_month.test)
+mean(tree.pred!=default_payment_next_month.test)#0.1757
+
+
+#---------------Naive Bayes Model----------------------------------------------
+library(e1071)
+set.seed(123)
+NB=naiveBayes(default_payment_next_month~.,data,subset=train)
+
+#training error
+NB_Predictions_train=predict(NB,data.train)
+table(NB_Predictions_train,default_payment_next_month.train)
+mean(NB_Predictions_train!=default_payment_next_month.train) # 0.2961
+
+#test error 
+NB_Predictions=predict(NB,data.test)
+table(NB_Predictions,default_payment_next_month.test)
+mean(NB_Predictions!=default_payment_next_month.test) # 0.2961
+
+-------------------SVM-Linear-------------------------------------------------
+#cost-Default i.e 1----------------------------------------------------
+svmfit=svm(default_payment_next_month~.,data=data,subset=train,kernel="linear")
+summary(svmfit)
+
+#Training error rate with SVMFIT 
+default_payment_next_month_pred_svm_train=predict(svmfit,data.train)
+table(default_payment_next_month_pred_svm_train,default_payment_next_month.train)
+mean(default_payment_next_month_pred_svm_train!=default_payment_next_month.train)
+
+#Test error rate with svmfit 
+default_payment_next_month_pred_svm_test=predict(svmfit,data.test)
+table(default_payment_next_month_pred_svm_test,default_payment_next_month.test)
+mean(default_payment_next_month_pred_svm_test!=default_payment_next_month.test) 
+
+#cost 0.1-------------------------------------------------------------
+svmfit_cost0.1=svm(default_payment_next_month~.,data=data,subset=train,kernel="linear",cost=0.1)
+summary(svmfit_cost0.1)
+
+#Training error rate with SVMFIT_cost0.1 
+default_payment_next_month_pred_svm_train_cost0.1=predict(svmfit_cost0.1,data.train)
+table(default_payment_next_month_pred_svm_train_cost0.1,default_payment_next_month.train)
+mean(default_payment_next_month_pred_svm_train_cost0.1!=default_payment_next_month.train)
+
+#Test error rate with svmfit_cost0.1
+default_payment_next_month_pred_svm_test_cost0.1=predict(svmfit_cost0.1,data.test)
+table(default_payment_next_month_pred_svm_test_cost0.1,default_payment_next_month.test)
+mean(default_payment_next_month_pred_svm_test_cost0.1!=default_payment_next_month.test) 
+
+#cost 0.01-----------------------------------------------------------------
+svmfit_cost0.01=svm(default_payment_next_month~.,data=data,subset=train,kernel="linear",cost=0.01)
+summary(svmfit_cost0.01)
+
+#Training error rate with SVMFIT_cost0.01 
+default_payment_next_month_pred_svm_train_cost0.01=predict(svmfit_cost0.01,data.train)
+table(default_payment_next_month_pred_svm_train_cost0.01,default_payment_next_month.train)
+mean(default_payment_next_month_pred_svm_train_cost0.01!=default_payment_next_month.train)
+
+#Test error rate with svmfit_cost0.01
+default_payment_next_month_pred_svm_test_cost0.01=predict(svmfit_cost0.01,data.test)
+table(default_payment_next_month_pred_svm_test_cost0.01,default_payment_next_month.test)
+mean(default_payment_next_month_pred_svm_test_cost0.01!=default_payment_next_month.test) 
+
+#cost 0.001------------------------------------------------------------------
+svmfit_cost0.001=svm(default_payment_next_month~.,data=data,subset=train,kernel="linear",cost=0.001)
+summary(svmfit_cost0.001)
+
+#Training error rate with SVMFIT_cost0.001 
+default_payment_next_month_pred_svm_train_cost0.001=predict(svmfit_cost0.001,data.train)
+table(default_payment_next_month_pred_svm_train_cost0.001,default_payment_next_month.train)
+mean(default_payment_next_month_pred_svm_train_cost0.001!=default_payment_next_month.train)
+
+#Test error rate with svmfit_cost0.001
+default_payment_next_month_pred_svm_test_cost0.001=predict(svmfit_cost0.001,data.test)
+table(default_payment_next_month_pred_svm_test_cost0.001,default_payment_next_month.test)
+mean(default_payment_next_month_pred_svm_test_cost0.001!=default_payment_next_month.test) 
+
+
+#-------------------------SVM-Radial---------------------------------------------------------------- 
+#default cost and gamma------------------------------------------------------------------
+svmfit_radial=svm(default_payment_next_month~.,data=data,subset=train,kernel="radial")
+summary(svmfit_radial)
+
+#Training error rate 
+default_payment_next_month_pred_svm_radial_train=predict(svmfit_radial,data.train)
+table(default_payment_next_month_pred_svm_radial_train,default_payment_next_month.train)
+mean(default_payment_next_month_pred_svm_radial_train!=default_payment_next_month.train) 
+
+#Test error rate   
+default_payment_next_month_pred_svm_radial_test=predict(svmfit_radial,data.test)
+table(default_payment_next_month_pred_svm_radial_test,default_payment_next_month.test)
+mean(default_payment_next_month_pred_svm_radial_test!=default_payment_next_month.test) 
+
+#default cost and gamma=0.01-------------------------------------------------
+svmfit_radial_gamma0.01=svm(default_payment_next_month~.,data=data,subset=train,kernel="radial",gamma=0.01)
+summary(svmfit_radial_gamma0.01)
+
+#Training error rate 
+default_payment_next_month_pred_svm_radial_train_gamma0.01=predict(svmfit_radial_gamma0.01,data.train)
+table(default_payment_next_month_pred_svm_radial_train_gamma0.01,default_payment_next_month.train)
+mean(default_payment_next_month_pred_svm_radial_train_gamma0.01!=default_payment_next_month.train) 
+
+#Test error rate   
+default_payment_next_month_pred_svm_radial_test_gamma0.01=predict(svmfit_radial_gamma0.01,data.test)
+table(default_payment_next_month_pred_svm_radial_test_gamma0.01,default_payment_next_month.test)
+mean(default_payment_next_month_pred_svm_radial_test_gamma0.01!=default_payment_next_month.test) 
+
+#default cost and gamma=0.07--------------------------------------------------
+svmfit_radial_gamma0.07=svm(default_payment_next_month~.,data=data,subset=train,kernel="radial",gamma=0.07)
+summary(svmfit_radial_gamma0.07)
+
+#Training error rate 
+default_payment_next_month_pred_svm_radial_train_gamma0.07=predict(svmfit_radial_gamma0.07,data.train)
+table(default_payment_next_month_pred_svm_radial_train_gamma0.07,default_payment_next_month.train)
+mean(default_payment_next_month_pred_svm_radial_train_gamma0.07!=default_payment_next_month.train) 
+
+#Test error rate   
+default_payment_next_month_pred_svm_radial_test_gamma0.07=predict(svmfit_radial_gamma0.07,data.test)
+table(default_payment_next_month_pred_svm_radial_test_gamma0.07,default_payment_next_month.test)
+mean(default_payment_next_month_pred_svm_radial_test_gamma0.07!=default_payment_next_month.test) 
+
+#default cost and gamma=0.1----------------------------------------------------
+svmfit_radial_gamma0.1=svm(default_payment_next_month~.,data=data,subset=train,kernel="radial",gamma=0.1)
+summary(svmfit_radial_gamma0.1)
+
+#Training error rate 
+default_payment_next_month_pred_svm_radial_train_gamma0.1=predict(svmfit_radial_gamma0.1,data.train)
+table(default_payment_next_month_pred_svm_radial_train_gamma0.1,default_payment_next_month.train)
+mean(default_payment_next_month_pred_svm_radial_train_gamma0.1!=default_payment_next_month.train) 
+
+#Test error rate   
+default_payment_next_month_pred_svm_radial_test_gamma0.1=predict(svmfit_radial_gamma0.1,data.test)
+table(default_payment_next_month_pred_svm_radial_test_gamma0.1,default_payment_next_month.test)
+mean(default_payment_next_month_pred_svm_radial_test_gamma0.1!=default_payment_next_month.test) 
+
+#default cost and gamma=1-----------------------------------------------------
+svmfit_radial_gamma1=svm(default_payment_next_month~.,data=data,subset=train,kernel="radial",gamma=1)
+summary(svmfit_radial_gamma1)
+
+#Training error rate 
+default_payment_next_month_pred_svm_radial_train_gamma1=predict(svmfit_radial_gamma1,data.train)
+table(default_payment_next_month_pred_svm_radial_train_gamma1,default_payment_next_month.train)
+mean(default_payment_next_month_pred_svm_radial_train_gamma1!=default_payment_next_month.train) 
+
+#Test error rate   
+default_payment_next_month_pred_svm_radial_test_gamma1=predict(svmfit_radial_gamma1,data.test)
+table(default_payment_next_month_pred_svm_radial_test_gamma1,default_payment_next_month.test)
+mean(default_payment_next_month_pred_svm_radial_test_gamma1!=default_payment_next_month.test) 
+
+
+#default cost and gamma=3-----------------------------------------------------
+svmfit_radial_gamma3=svm(default_payment_next_month~.,data=data,subset=train,kernel="radial",gamma=3)
+summary(svmfit_radial_gamma3)
+
+#Training error rate 
+default_payment_next_month_pred_svm_radial_train_gamma3=predict(svmfit_radial_gamma3,data.train)
+table(default_payment_next_month_pred_svm_radial_train_gamma3,default_payment_next_month.train)
+mean(default_payment_next_month_pred_svm_radial_train_gamma3!=default_payment_next_month.train) 
+
+#Test error rate   
+default_payment_next_month_pred_svm_radial_test_gamma3=predict(svmfit_radial_gamma3,data.test)
+table(default_payment_next_month_pred_svm_radial_test_gamma3,default_payment_next_month.test)
+mean(default_payment_next_month_pred_svm_radial_test_gamma3!=default_payment_next_month.test) 
+
+----------------------cost=0.1 and different gamma---------------------------------------------
+#cost 0.1 and gamma 0.01---------------------------------------------
+svmfit_radial_cost0.1_gamma0.01=svm(default_payment_next_month~.,data=data,subset=train,kernel="radial",cost=0.1,gamma=0.01)
+summary(svmfit_radial_cost0.1_gamma0.01)
+
+#Training error rate  svmfit_radial_cost0.1_gamma0.01
+default_payment_next_month_pred_svm_radial_train_cost0.1_gamma0.01=predict(svmfit_radial_cost0.1_gamma0.01,data.train)
+table(default_payment_next_month_pred_svm_radial_train_cost0.1_gamma0.01,default_payment_next_month.train)
+mean(default_payment_next_month_pred_svm_radial_train_cost0.1_gamma0.01!=default_payment_next_month.train) 
+
+#Test error rate   svmfit_radial_cost0.1_gamma0.01
+default_payment_next_month_pred_svm_radial_test_cost0.1_gamma0.01=predict(svmfit_radial_cost0.1_gamma0.01,data.test)
+table(default_payment_next_month_pred_svm_radial_test_cost0.1_gamma0.01,default_payment_next_month.test)
+mean(default_payment_next_month_pred_svm_radial_test_cost0.1_gamma0.01!=default_payment_next_month.test) 
+
+
+#cost 0.1 and gamma default-------------------------------------------------
+svmfit_radial_cost0.1_gammadf=svm(default_payment_next_month~.,data=data,subset=train,kernel="radial",cost=0.1)
+summary(svmfit_radial_cost0.1_gammadf)
+
+#Training error rate  svmfit_radial_cost0.1_gammadf
+default_payment_next_month_pred_svm_radial_train_cost0.1_gammadf=predict(svmfit_radial_cost0.1_gammadf,data.train)
+table(default_payment_next_month_pred_svm_radial_train_cost0.1_gammadf,default_payment_next_month.train)
+mean(default_payment_next_month_pred_svm_radial_train_cost0.1_gammadf!=default_payment_next_month.train) 
+
+#Test error rate   svmfit_radial_cost0.1_gammadf
+default_payment_next_month_pred_svm_radial_test_cost0.1_gammadf=predict(svmfit_radial_cost0.1_gammadf,data.test)
+table(default_payment_next_month_pred_svm_radial_test_cost0.1_gammadf,default_payment_next_month.test)
+mean(default_payment_next_month_pred_svm_radial_test_cost0.1_gammadf!=default_payment_next_month.test) 
+
+
+#cost 0.1 and gamma 0.07-------------------------------------------------
+svmfit_radial_cost0.1_gamma0.07=svm(default_payment_next_month~.,data=data,subset=train,kernel="radial",cost=0.1,gamma=0.07)
+summary(svmfit_radial_cost0.1_gamma0.07)
+
+#Training error rate  svmfit_radial_cost0.1_gamma0.07
+default_payment_next_month_pred_svm_radial_train_cost0.1_gamma0.07=predict(svmfit_radial_cost0.1_gamma0.07,data.train)
+table(default_payment_next_month_pred_svm_radial_train_cost0.1_gamma0.07,default_payment_next_month.train)
+mean(default_payment_next_month_pred_svm_radial_train_cost0.1_gamma0.07!=default_payment_next_month.train) 
+
+#Test error rate   svmfit_radial_cost0.1_gamma0.07
+default_payment_next_month_pred_svm_radial_test_cost0.1_gamma0.07=predict(svmfit_radial_cost0.1_gamma0.07,data.test)
+table(default_payment_next_month_pred_svm_radial_test_cost0.1_gamma0.07,default_payment_next_month.test)
+mean(default_payment_next_month_pred_svm_radial_test_cost0.1_gamma0.07!=default_payment_next_month.test) 
+
+#cost 0.1 and gamma 0.1-------------------------------------------------
+
+svmfit_radial_cost0.1_gamma0.1=svm(default_payment_next_month~.,data=data,subset=train,kernel="radial",cost=0.1,gamma=0.1)
+summary(svmfit_radial_cost0.1_gamma0.1)
+#Training error rate  svmfit_radial_cost0.1_gamma0.1
+default_payment_next_month_pred_svm_radial_train_cost0.1_gamma0.1=predict(svmfit_radial_cost0.1_gamma0.1,data.train)
+table(default_payment_next_month_pred_svm_radial_train_cost0.1_gamma0.1,default_payment_next_month.train)
+mean(default_payment_next_month_pred_svm_radial_train_cost0.1_gamma0.1!=default_payment_next_month.train) 
+
+#Test error rate   svmfit_radial_cost0.1_gamma0.1
+default_payment_next_month_pred_svm_radial_test_cost0.1_gamma0.1=predict(svmfit_radial_cost0.1_gamma0.1,data.test)
+table(default_payment_next_month_pred_svm_radial_test_cost0.1_gamma0.1,default_payment_next_month.test)
+mean(default_payment_next_month_pred_svm_radial_test_cost0.1_gamma0.1!=default_payment_next_month.test) 
+
+
+#cost 0.1 and gamma 1-------------------------------------------------
+
+svmfit_radial_cost0.1_gamma1=svm(default_payment_next_month~.,data=data,subset=train,kernel="radial",cost=0.1,gamma=1)
+summary(svmfit_radial_cost0.1_gamma1)
+
+#Training error rate  svmfit_radial_cost0.1_gamma1
+default_payment_next_month_pred_svm_radial_train_cost0.1_gamma1=predict(svmfit_radial_cost0.1_gamma1,data.train)
+table(default_payment_next_month_pred_svm_radial_train_cost0.1_gamma1,default_payment_next_month.train)
+mean(default_payment_next_month_pred_svm_radial_train_cost0.1_gamma1!=default_payment_next_month.train) 
+
+#Test error rate   svmfit_radial_cost0.1_gamma1
+default_payment_next_month_pred_svm_radial_test_cost0.1_gamma1=predict(svmfit_radial_cost0.1_gamma1,data.test)
+table(default_payment_next_month_pred_svm_radial_test_cost0.1_gamma1,default_payment_next_month.test)
+mean(default_payment_next_month_pred_svm_radial_test_cost0.1_gamma1!=default_payment_next_month.test) 
+
+#cost 0.1 and gamma 3-------------------------------------------------
+summary(svmfit_radial_cost0.1_gamma3)
+svmfit_radial_cost0.1_gamma3=svm(default_payment_next_month~.,data=data,subset=train,kernel="radial",cost=0.1,gamma=3)
+#Training error rate  svmfit_radial_cost0.1_gamma3
+default_payment_next_month_pred_svm_radial_train_cost0.1_gamma3=predict(svmfit_radial_cost0.1_gamma3,data.train)
+table(default_payment_next_month_pred_svm_radial_train_cost0.1_gamma3,default_payment_next_month.train)
+mean(default_payment_next_month_pred_svm_radial_train_cost0.1_gamma3!=default_payment_next_month.train) 
+
+#Test error rate   svmfit_radial_cost0.1_gamma3
+default_payment_next_month_pred_svm_radial_test_cost0.1_gamma3=predict(svmfit_radial_cost0.1_gamma3,data.test)
+table(default_payment_next_month_pred_svm_radial_test_cost0.1_gamma3,default_payment_next_month.test)
+mean(default_payment_next_month_pred_svm_radial_test_cost0.1_gamma3!=default_payment_next_month.test) 
+
+
+
+#------------cost=0.01 and different gamma---------------------------------------------
+#cost 0.01 and gamma 0.01--------------------------------------------
+svmfit_radial_cost0.01_gamma0.01=svm(default_payment_next_month~.,data=data,subset=train,kernel="radial",cost=0.01,gamma=0.01)
+#Training error rate  
+default_payment_next_month_pred_svm_radial_train_cost0.01_gamma0.01=predict(svmfit_radial_cost0.01_gamma0.01,data.train)
+table(default_payment_next_month_pred_svm_radial_train_cost0.01_gamma0.01,default_payment_next_month.train)
+mean(default_payment_next_month_pred_svm_radial_train_cost0.01_gamma0.01!=default_payment_next_month.train) 
+
+#Test error rate   
+default_payment_next_month_pred_svm_radial_test_cost0.01_gamma0.01=predict(svmfit_radial_cost0.01_gamma0.01,data.test)
+table(default_payment_next_month_pred_svm_radial_test_cost0.01_gamma0.01,default_payment_next_month.test)
+mean(default_payment_next_month_pred_svm_radial_test_cost0.01_gamma0.01!=default_payment_next_month.test) 
+
+
+#cost 0.01 and gamma 0.07---------------------------------------------
+svmfit_radial_cost0.01_gamma0.07=svm(default_payment_next_month~.,data=data,subset=train,kernel="radial",cost=0.01,gamma=0.07)
+#Training error rate  svmfit_radial_cost0.01_gamma0.07
+default_payment_next_month_pred_svm_radial_train_cost0.01_gamma0.07=predict(svmfit_radial_cost0.01_gamma0.07,data.train)
+table(default_payment_next_month_pred_svm_radial_train_cost0.01_gamma0.07,default_payment_next_month.train)
+mean(default_payment_next_month_pred_svm_radial_train_cost0.01_gamma0.07!=default_payment_next_month.train) 
+
+#Test error rate   svmfit_radial_cost0.01_gamma0.07
+default_payment_next_month_pred_svm_radial_test_cost0.01_gamma0.07=predict(svmfit_radial_cost0.01_gamma0.07,data.test)
+table(default_payment_next_month_pred_svm_radial_test_cost0.01_gamma0.07,default_payment_next_month.test)
+mean(default_payment_next_month_pred_svm_radial_test_cost0.01_gamma0.07!=default_payment_next_month.test) 
+
+
+#cost 0.01 and gamma 0.1---------------------------------------------
+svmfit_radial_cost0.01_gamma0.1=svm(default_payment_next_month~.,data=data,subset=train,kernel="radial",cost=0.01,gamma=0.1)
+#Training error rate  svmfit_radial_cost0.01_gamma0.1
+default_payment_next_month_pred_svm_radial_train_cost0.01_gamma0.1=predict(svmfit_radial_cost0.01_gamma0.1,data.train)
+table(default_payment_next_month_pred_svm_radial_train_cost0.01_gamma0.1,default_payment_next_month.train)
+mean(default_payment_next_month_pred_svm_radial_train_cost0.01_gamma0.1!=default_payment_next_month.train) 
+
+#Test error rate   svmfit_radial_cost0.01_gamma0.1
+default_payment_next_month_pred_svm_radial_test_cost0.01_gamma0.1=predict(svmfit_radial_cost0.01_gamma0.1,data.test)
+table(default_payment_next_month_pred_svm_radial_test_cost0.01_gamma0.1,default_payment_next_month.test)
+mean(default_payment_next_month_pred_svm_radial_test_cost0.01_gamma0.1!=default_payment_next_month.test) 
+
+
+#cost 0.01 and gamma 1---------------------------------------------
+svmfit_radial_cost0.01_gamma1=svm(default_payment_next_month~.,data=data,subset=train,kernel="radial",cost=0.01,gamma=1)
+#Training error rate  svmfit_radial_cost0.01_gamma1
+default_payment_next_month_pred_svm_radial_train_cost0.01_gamma1=predict(svmfit_radial_cost0.01_gamma1,data.train)
+table(default_payment_next_month_pred_svm_radial_train_cost0.01_gamma1,default_payment_next_month.train)
+mean(default_payment_next_month_pred_svm_radial_train_cost0.01_gamma1!=default_payment_next_month.train) 
+
+#Test error rate   svmfit_radial_cost0.01_gamma1
+default_payment_next_month_pred_svm_radial_test_cost0.01_gamma1=predict(svmfit_radial_cost0.01_gamma1,data.test)
+table(default_payment_next_month_pred_svm_radial_test_cost0.01_gamma1,default_payment_next_month.test)
+mean(default_payment_next_month_pred_svm_radial_test_cost0.01_gamma1!=default_payment_next_month.test) 
+
+
+#cost 0.01 and gamma 3---------------------------------------------
+svmfit_radial_cost0.01_gamma3=svm(default_payment_next_month~.,data=data,subset=train,kernel="radial",cost=0.01,gamma=3)
+#Training error rate  svmfit_radial_cost0.01_gamma3
+default_payment_next_month_pred_svm_radial_train_cost0.01_gamma3=predict(svmfit_radial_cost0.01_gamma3,data.train)
+table(default_payment_next_month_pred_svm_radial_train_cost0.01_gamma3,default_payment_next_month.train)
+mean(default_payment_next_month_pred_svm_radial_train_cost0.01_gamma3!=default_payment_next_month.train) 
+
+#Test error rate   svmfit_radial_cost0.01_gamma3
+default_payment_next_month_pred_svm_radial_test_cost0.01_gamma3=predict(svmfit_radial_cost0.01_gamma3,data.test)
+table(default_payment_next_month_pred_svm_radial_test_cost0.01_gamma3,default_payment_next_month.test)
+mean(default_payment_next_month_pred_svm_radial_test_cost0.01_gamma3!=default_payment_next_month.test) 
+
+
+
+#----------------------cost=0.001 and different gamma---------------------------------------------
+#cost 0.001 and gamma 0.01----------------------
+svmfit_radial_cost0.001_gamma0.01=svm(default_payment_next_month~.,data=data,subset=train,kernel="radial",cost=0.001,gamma=0.01)
+#Training error rate  svmfit_radial_cost0.001_gamma0.01
+default_payment_next_month_pred_svm_radial_train_cost0.001_gamma0.01=predict(svmfit_radial_cost0.001_gamma0.01,data.train)
+table(default_payment_next_month_pred_svm_radial_train_cost0.001_gamma0.01,default_payment_next_month.train)
+mean(default_payment_next_month_pred_svm_radial_train_cost0.001_gamma0.01!=default_payment_next_month.train) 
+
+#Test error rate   svmfit_radial_cost0.001_gamma0.01
+default_payment_next_month_pred_svm_radial_test_cost0.001_gamma0.01=predict(svmfit_radial_cost0.001_gamma0.01,data.test)
+table(default_payment_next_month_pred_svm_radial_test_cost0.001_gamma0.01,default_payment_next_month.test)
+mean(default_payment_next_month_pred_svm_radial_test_cost0.001_gamma0.01!=default_payment_next_month.test) 
+
+
+#cost 0.001 and gamma default---------------------------
+svmfit_radial_cost0.001_gammadf=svm(default_payment_next_month~.,data=data,subset=train,kernel="radial",cost=0.001)
+
+#cost 0.001 and gamma 0.07---------------------------
+svmfit_radial_cost0.001_gamma0.07=svm(default_payment_next_month~.,data=data,subset=train,kernel="radial",cost=0.001,gamma=0.07)
+
+#Training error rate  svmfit_radial_cost0.001_gamma0.07
+default_payment_next_month_pred_svm_radial_train_cost0.001_gamma0.07=predict(svmfit_radial_cost0.001_gamma0.07,data.train)
+table(default_payment_next_month_pred_svm_radial_train_cost0.001_gamma0.07,default_payment_next_month.train)
+mean(default_payment_next_month_pred_svm_radial_train_cost0.001_gamma0.07!=default_payment_next_month.train) 
+
+#Test error rate   svmfit_radial_cost0.001_gamma0.07
+default_payment_next_month_pred_svm_radial_test_cost0.001_gamma0.07=predict(svmfit_radial_cost0.001_gamma0.07,data.test)
+table(default_payment_next_month_pred_svm_radial_test_cost0.001_gamma0.07,default_payment_next_month.test)
+mean(default_payment_next_month_pred_svm_radial_test_cost0.001_gamma0.07!=default_payment_next_month.test) 
+
+#cost 0.001 and gamma 0.1-------------------------------------------------
+svmfit_radial_cost0.001_gamma0.1=svm(default_payment_next_month~.,data=data,subset=train,kernel="radial",cost=0.001,gamma=0.1)
+
+#Training error rate  svmfit_radial_cost0.001_gamma0.1
+default_payment_next_month_pred_svm_radial_train_cost0.001_gamma0.1=predict(svmfit_radial_cost0.001_gamma0.1,data.train)
+table(default_payment_next_month_pred_svm_radial_train_cost0.001_gamma0.1,default_payment_next_month.train)
+mean(default_payment_next_month_pred_svm_radial_train_cost0.001_gamma0.1!=default_payment_next_month.train) 
+
+#Test error rate   svmfit_radial_cost0.001_gamma0.1
+default_payment_next_month_pred_svm_radial_test_cost0.001_gamma0.1=predict(svmfit_radial_cost0.001_gamma0.1,data.test)
+table(default_payment_next_month_pred_svm_radial_test_cost0.001_gamma0.1,default_payment_next_month.test)
+mean(default_payment_next_month_pred_svm_radial_test_cost0.001_gamma0.1!=default_payment_next_month.test) 
+
+#cost 0.001 amd gamma 1--------------------------
+svmfit_radial_cost0.001_gamma1=svm(default_payment_next_month~.,data=data,subset=train,kernel="radial",cost=0.001,gamma=1)
+
+#cost 0.001 and gamma 3----------------------------
+svmfit_radial_cost0.001_gamma3=svm(default_payment_next_month~.,data=data,subset=train,kernel="radial",cost=0.001,gamma=3)
+#Training error rate  svmfit_radial_cost0.001_gamma3
+default_payment_next_month_pred_svm_radial_train_cost0.001_gamma3=predict(svmfit_radial_cost0.001_gamma3,data.train)
+table(default_payment_next_month_pred_svm_radial_train_cost0.001_gamma3,default_payment_next_month.train)
+mean(default_payment_next_month_pred_svm_radial_train_cost0.001_gamma3!=default_payment_next_month.train) 
+
+#Test error rate   svmfit_radial_cost0.001_gamma3
+default_payment_next_month_pred_svm_radial_test_cost0.001_gamma3=predict(svmfit_radial_cost0.001_gamma3,data.test)
+table(default_payment_next_month_pred_svm_radial_test_cost0.001_gamma3,default_payment_next_month.test)
+mean(default_payment_next_month_pred_svm_radial_test_cost0.001_gamma3!=default_payment_next_month.test) 
+
+
+#-----------------------cost 10 and different gammas---------------------------
+#cost 10 and gamma 0.01----------------------
+svmfit_radial_cost10_gamma0.01=svm(default_payment_next_month~.,data=data,subset=train,kernel="radial",cost=10,gamma=0.01)
+#Training error rate  svmfit_radial_cost10_gamma0.01
+default_payment_next_month_pred_svm_radial_train_cost10_gamma0.01=predict(svmfit_radial_cost10_gamma0.01,data.train)
+table(default_payment_next_month_pred_svm_radial_train_cost10_gamma0.01,default_payment_next_month.train)
+mean(default_payment_next_month_pred_svm_radial_train_cost10_gamma0.01!=default_payment_next_month.train) 
+
+#Test error rate   svmfit_radial_cost10_gamma0.01
+default_payment_next_month_pred_svm_radial_test_cost10_gamma0.01=predict(svmfit_radial_cost10_gamma0.01,data.test)
+table(default_payment_next_month_pred_svm_radial_test_cost10_gamma0.01,default_payment_next_month.test)
+mean(default_payment_next_month_pred_svm_radial_test_cost10_gamma0.01!=default_payment_next_month.test) 
+
+#cost 10 and gamma default----------------------
+svmfit_radial_cost10=svm(default_payment_next_month~.,data=data,subset=train,kernel="radial",cost=10)
+#Training error rate  svmfit_radial_cost10
+default_payment_next_month_pred_svm_radial_train_cost10=predict(svmfit_radial_cost10,data.train)
+table(default_payment_next_month_pred_svm_radial_train_cost10,default_payment_next_month.train)
+mean(default_payment_next_month_pred_svm_radial_train_cost10!=default_payment_next_month.train) 
+
+#Test error rate   svmfit_radial_cost10
+default_payment_next_month_pred_svm_radial_test_cost10=predict(svmfit_radial_cost10,data.test)
+table(default_payment_next_month_pred_svm_radial_test_cost10,default_payment_next_month.test)
+mean(default_payment_next_month_pred_svm_radial_test_cost10!=default_payment_next_month.test) 
+
+
+#cost 10 and gamma 0.07----------------------
+svmfit_radial_cost10_gamma0.07=svm(default_payment_next_month~.,data=data,subset=train,kernel="radial",cost=10,gamma=0.07)
+#Training error rate  svmfit_radial_cost10_gamma0.07
+default_payment_next_month_pred_svm_radial_train_cost10_gamma0.07=predict(svmfit_radial_cost10_gamma0.07,data.train)
+table(default_payment_next_month_pred_svm_radial_train_cost10_gamma0.07,default_payment_next_month.train)
+mean(default_payment_next_month_pred_svm_radial_train_cost10_gamma0.07!=default_payment_next_month.train) 
+
+#Test error rate   svmfit_radial_cost10_gamma0.07
+default_payment_next_month_pred_svm_radial_test_cost10_gamma0.07=predict(svmfit_radial_cost10_gamma0.07,data.test)
+table(default_payment_next_month_pred_svm_radial_test_cost10_gamma0.07,default_payment_next_month.test)
+mean(default_payment_next_month_pred_svm_radial_test_cost10_gamma0.07!=default_payment_next_month.test) 
+
+#cost 10 and gamma 0.1----------------------
+svmfit_radial_cost10_gamma0.1=svm(default_payment_next_month~.,data=data,subset=train,kernel="radial",cost=10,gamma=0.1)
+#Training error rate  svmfit_radial_cost10_gamma0.1
+default_payment_next_month_pred_svm_radial_train_cost10_gamma0.1=predict(svmfit_radial_cost10_gamma0.1,data.train)
+table(default_payment_next_month_pred_svm_radial_train_cost10_gamma0.1,default_payment_next_month.train)
+mean(default_payment_next_month_pred_svm_radial_train_cost10_gamma0.1!=default_payment_next_month.train) 
+
+#Test error rate   svmfit_radial_cost10_gamma0.1
+default_payment_next_month_pred_svm_radial_test_cost10_gamma0.1=predict(svmfit_radial_cost10_gamma0.1,data.test)
+table(default_payment_next_month_pred_svm_radial_test_cost10_gamma0.1,default_payment_next_month.test)
+mean(default_payment_next_month_pred_svm_radial_test_cost10_gamma0.1!=default_payment_next_month.test) 
+
+#cost 10 and gamma 1----------------------
+svmfit_radial_cost10_gamma1=svm(default_payment_next_month~.,data=data,subset=train,kernel="radial",cost=10,gamma=1)
+#Training error rate  svmfit_radial_cost10_gamma1
+default_payment_next_month_pred_svm_radial_train_cost10_gamma1=predict(svmfit_radial_cost10_gamma1,data.train)
+table(default_payment_next_month_pred_svm_radial_train_cost10_gamma1,default_payment_next_month.train)
+mean(default_payment_next_month_pred_svm_radial_train_cost10_gamma1!=default_payment_next_month.train) 
+
+#Test error rate   svmfit_radial_cost10_gamma1
+default_payment_next_month_pred_svm_radial_test_cost10_gamma1=predict(svmfit_radial_cost10_gamma1,data.test)
+table(default_payment_next_month_pred_svm_radial_test_cost10_gamma1,default_payment_next_month.test)
+mean(default_payment_next_month_pred_svm_radial_test_cost10_gamma1!=default_payment_next_month.test) 
+
+#cost 10 and gamma 3----------------------
+svmfit_radial_cost10_gamma3=svm(default_payment_next_month~.,data=data,subset=train,kernel="radial",cost=10,gamma=3)
+#Training error rate  svmfit_radial_cost10_gamma3
+default_payment_next_month_pred_svm_radial_train_cost10_gamma3=predict(svmfit_radial_cost10_gamma3,data.train)
+table(default_payment_next_month_pred_svm_radial_train_cost10_gamma3,default_payment_next_month.train)
+mean(default_payment_next_month_pred_svm_radial_train_cost10_gamma3!=default_payment_next_month.train) 
+
+#Test error rate   svmfit_radial_cost10_gamma3
+default_payment_next_month_pred_svm_radial_test_cost10_gamma3=predict(svmfit_radial_cost10_gamma3,data.test)
+table(default_payment_next_month_pred_svm_radial_test_cost10_gamma3,default_payment_next_month.test)
+mean(default_payment_next_month_pred_svm_radial_test_cost10_gamma3!=default_payment_next_month.test) 
+
+
+#-----------------------------------SVM-Polynomial-----------------------------------------------------------
+#default cost=1 and degree=3----------------------------------------------
+svmfit_polynomial=svm(default_payment_next_month~.,data=data,subset=train,kernel="polynomial")
+summary(svmfit_polynomial)
+
+#Training error rate 
+default_payment_next_month_pred_svm_polynomial_train=predict(svmfit_polynomial,data.train)
+table(default_payment_next_month_pred_svm_polynomial_train,default_payment_next_month.train)
+mean(default_payment_next_month_pred_svm_polynomial_train!=default_payment_next_month.train) 
+
+#Test error rate 
+default_payment_next_month_pred_svm_polynomial_test=predict(svmfit_polynomial,data.test)
+table(default_payment_next_month_pred_svm_polynomial_test,default_payment_next_month.test)
+mean(default_payment_next_month_pred_svm_polynomial_test!=default_payment_next_month.test) # 0.2022482
+
+
+#default cost=1 and degree=2---------------------------------------------------
+svmfit_polynomial_degree2=svm(default_payment_next_month~.,data=data,subset=train,kernel="polynomial",degree=2)
+summary(svmfit_polynomial_degree2)
+
+#Training error rate
+default_payment_next_month_pred_svm_polynomial_train_degree2=predict(svmfit_polynomial_degree2,data.train)
+table(default_payment_next_month_pred_svm_polynomial_train_degree2,default_payment_next_month.train)
+mean(default_payment_next_month_pred_svm_polynomial_train_degree2!=default_payment_next_month.train) 
+
+#Test error rate 
+default_payment_next_month_pred_svm_polynomial_test_degree2=predict(svmfit_polynomial_degree2,data.test)
+table(default_payment_next_month_pred_svm_polynomial_test_degree2,default_payment_next_month.test)
+mean(default_payment_next_month_pred_svm_polynomial_test_degree2!=default_payment_next_month.test) 
+
+#default cost and degree=4----------------------------------------------------
+svmfit_polynomial_degree4=svm(default_payment_next_month~.,data=data,subset=train,kernel="polynomial",degree=4)
+summary(svmfit_polynomial_degree4)
+
+#Training error rate
+default_payment_next_month_pred_svm_polynomial_train_degree4=predict(svmfit_polynomial_degree4,data.train)
+table(default_payment_next_month_pred_svm_polynomial_train_degree4,default_payment_next_month.train)
+mean(default_payment_next_month_pred_svm_polynomial_train_degree4!=default_payment_next_month.train) 
+
+#Test error rate 
+default_payment_next_month_pred_svm_polynomial_test_degree4=predict(svmfit_polynomial_degree4,data.test)
+table(default_payment_next_month_pred_svm_polynomial_test_degree4,default_payment_next_month.test)
+mean(default_payment_next_month_pred_svm_polynomial_test_degree4!=default_payment_next_month.test) 
+
+
+#cost=0.1 and degree=2-----------------------------------------
+svmfit_polynomial_degree2=svm(default_payment_next_month~.,data=data,subset=train,kernel="polynomial",cost=0.1,degree=2)
+summary(svmfit_polynomial_degree2)
+
+#Training error rate
+default_payment_next_month_pred_svm_polynomial_train_degree2=predict(svmfit_polynomial_degree2,data.train)
+table(default_payment_next_month_pred_svm_polynomial_train_degree2,default_payment_next_month.train)
+mean(default_payment_next_month_pred_svm_polynomial_train_degree2!=default_payment_next_month.train) 
+
+#Test error rate 
+default_payment_next_month_pred_svm_polynomial_test_degree2=predict(svmfit_polynomial_degree2,data.test)
+table(default_payment_next_month_pred_svm_polynomial_test_degree2,default_payment_next_month.test)
+mean(default_payment_next_month_pred_svm_polynomial_test_degree2!=default_payment_next_month.test) 
+
+#cost=0.1 and degree=3-----------------------------------------
+svmfit_polynomial_degree3=svm(default_payment_next_month~.,data=data,subset=train,kernel="polynomial",cost=0.1,degree=3)
+summary(svmfit_polynomial_degree3)
+
+#Training error rate
+default_payment_next_month_pred_svm_polynomial_train_degree3=predict(svmfit_polynomial_degree3,data.train)
+table(default_payment_next_month_pred_svm_polynomial_train_degree3,default_payment_next_month.train)
+mean(default_payment_next_month_pred_svm_polynomial_train_degree3!=default_payment_next_month.train) 
+
+#Test error rate 
+default_payment_next_month_pred_svm_polynomial_test_degree3=predict(svmfit_polynomial_degree3,data.test)
+table(default_payment_next_month_pred_svm_polynomial_test_degree3,default_payment_next_month.test)
+mean(default_payment_next_month_pred_svm_polynomial_test_degree3!=default_payment_next_month.test) 
+
+#cost=0.1 and degree=4-----------------------------------------
+svmfit_polynomial_degree4=svm(default_payment_next_month~.,data=data,subset=train,kernel="polynomial",cost=0.1,degree=4)
+summary(svmfit_polynomial_degree4)
+
+#Training error rate
+default_payment_next_month_pred_svm_polynomial_train_degree4=predict(svmfit_polynomial_degree4,data.train)
+table(default_payment_next_month_pred_svm_polynomial_train_degree4,default_payment_next_month.train)
+mean(default_payment_next_month_pred_svm_polynomial_train_degree4!=default_payment_next_month.train) 
+
+#Test error rate 
+default_payment_next_month_pred_svm_polynomial_test_degree4=predict(svmfit_polynomial_degree4,data.test)
+table(default_payment_next_month_pred_svm_polynomial_test_degree4,default_payment_next_month.test)
+mean(default_payment_next_month_pred_svm_polynomial_test_degree4!=default_payment_next_month.test) 
+
+
+#cost=0.1 and degree=5-----------------------------------------
+svmfit_polynomial_degree5=svm(default_payment_next_month~.,data=data,subset=train,kernel="polynomial",cost=0.1,degree=5)
+summary(svmfit_polynomial_degree5)
+
+#Training error rate
+default_payment_next_month_pred_svm_polynomial_train_degree5=predict(svmfit_polynomial_degree5,data.train)
+table(default_payment_next_month_pred_svm_polynomial_train_degree5,default_payment_next_month.train)
+mean(default_payment_next_month_pred_svm_polynomial_train_degree5!=default_payment_next_month.train) 
+
+#Test error rate 
+default_payment_next_month_pred_svm_polynomial_test_degree5=predict(svmfit_polynomial_degree5,data.test)
+table(default_payment_next_month_pred_svm_polynomial_test_degree5,default_payment_next_month.test)
+mean(default_payment_next_month_pred_svm_polynomial_test_degree5!=default_payment_next_month.test) 
+
+#cost=10 and degree=2-----------------------------------------
+svmfit_polynomial_cost10_degree2=svm(default_payment_next_month~.,data=data,subset=train,kernel="polynomial",cost=10,degree=2)
+summary(svmfit_polynomial_cost10_degree2)
+
+#Training error rate
+default_payment_next_month_pred_svm_polynomial_train_cost10_degree2=predict(svmfit_polynomial_cost10_degree2,data.train)
+table(default_payment_next_month_pred_svm_polynomial_train_cost10_degree2,default_payment_next_month.train)
+mean(default_payment_next_month_pred_svm_polynomial_train_cost10_degree2!=default_payment_next_month.train) 
+
+#Test error rate 
+default_payment_next_month_pred_svm_polynomial_test_cost10_degree2=predict(svmfit_polynomial_cost10_degree2,data.test)
+table(default_payment_next_month_pred_svm_polynomial_test_cost10_degree2,default_payment_next_month.test)
+mean(default_payment_next_month_pred_svm_polynomial_test_cost10_degree2!=default_payment_next_month.test) 
+
+#cost=10 and degree=3-----------------------------------------
+svmfit_polynomial_cost10_degree3=svm(default_payment_next_month~.,data=data,subset=train,kernel="polynomial",cost=10,degree=3)
+summary(svmfit_polynomial_cost10_degree3)
+
+#Training error rate
+default_payment_next_month_pred_svm_polynomial_train_cost10_degree3=predict(svmfit_polynomial_cost10_degree3,data.train)
+table(default_payment_next_month_pred_svm_polynomial_train_cost10_degree3,default_payment_next_month.train)
+mean(default_payment_next_month_pred_svm_polynomial_train_cost10_degree3!=default_payment_next_month.train) 
+
+#Test error rate 
+default_payment_next_month_pred_svm_polynomial_test_cost10_degree3=predict(svmfit_polynomial_cost10_degree3,data.test)
+table(default_payment_next_month_pred_svm_polynomial_test_cost10_degree3,default_payment_next_month.test)
+mean(default_payment_next_month_pred_svm_polynomial_test_cost10_degree3!=default_payment_next_month.test) 
+
+#cost=10 and degree=4-----------------------------------------
+svmfit_polynomial_cost10_degree4=svm(default_payment_next_month~.,data=data,subset=train,kernel="polynomial",cost=10,degree=4)
+summary(svmfit_polynomial_cost10_degree4)
+
+#Training error rate
+default_payment_next_month_pred_svm_polynomial_train_cost10_degree4=predict(svmfit_polynomial_cost10_degree4,data.train)
+table(default_payment_next_month_pred_svm_polynomial_train_cost10_degree4,default_payment_next_month.train)
+mean(default_payment_next_month_pred_svm_polynomial_train_cost10_degree4!=default_payment_next_month.train) 
+
+#Test error rate 
+default_payment_next_month_pred_svm_polynomial_test_cost10_degree4=predict(svmfit_polynomial_cost10_degree4,data.test)
+table(default_payment_next_month_pred_svm_polynomial_test_cost10_degree4,default_payment_next_month.test)
+mean(default_payment_next_month_pred_svm_polynomial_test_cost10_degree4!=default_payment_next_month.test) 
+
+#-------------Polynomial with different gamma 0.1----------------------------
+#cost=0.1,gamma=0.1 and default degree -----------------------------------------
+svmfit_polynomial_cost0.1_degreedf_gamma0.1=svm(default_payment_next_month~.,data=data,subset=train,kernel="polynomial",cost=0.1,gamma=0.1)
+summary(svmfit_polynomial_cost0.1_degreedf_gamma0.1)
+
+#Training error rate
+default_payment_next_month_pred_svm_polynomial_train_cost0.1_degreedf_gamma0.1=predict(svmfit_polynomial_cost0.1_degreedf_gamma0.1,data.train)
+table(default_payment_next_month_pred_svm_polynomial_train_cost0.1_degreedf_gamma0.1,default_payment_next_month.train)
+mean(default_payment_next_month_pred_svm_polynomial_train_cost0.1_degreedf_gamma0.1!=default_payment_next_month.train) 
+
+#Test error rate 
+default_payment_next_month_pred_svm_polynomial_test_cost0.1_degreedf_gamma0.1=predict(svmfit_polynomial_cost0.1_degreedf_gamma0.1,data.test)
+table(default_payment_next_month_pred_svm_polynomial_test_cost0.1_degreedf_gamma0.1,default_payment_next_month.test)
+mean(default_payment_next_month_pred_svm_polynomial_test_cost0.1_degreedf_gamma0.1!=default_payment_next_month.test) 
+
+#cost=1,gamma=0.1 and default degree -----------------------------------------
+svmfit_polynomial_cost1_degreedf_gamma0.1=svm(default_payment_next_month~.,data=data,subset=train,kernel="polynomial",cost=1,gamma=0.1)
+summary(svmfit_polynomial_cost1_degreedf_gamma0.1)
+
+#Training error rate
+default_payment_next_month_pred_svm_polynomial_train_cost1_degreedf_gamma0.1=predict(svmfit_polynomial_cost1_degreedf_gamma0.1,data.train)
+table(default_payment_next_month_pred_svm_polynomial_train_cost1_degreedf_gamma0.1,default_payment_next_month.train)
+mean(default_payment_next_month_pred_svm_polynomial_train_cost1_degreedf_gamma0.1!=default_payment_next_month.train) 
+
+#Test error rate 
+default_payment_next_month_pred_svm_polynomial_test_cost1_degreedf_gamma0.1=predict(svmfit_polynomial_cost1_degreedf_gamma0.1,data.test)
+table(default_payment_next_month_pred_svm_polynomial_test_cost1_degreedf_gamma0.1,default_payment_next_month.test)
+mean(default_payment_next_month_pred_svm_polynomial_test_cost1_degreedf_gamma0.1!=default_payment_next_month.test) 
+
+
+#cost=0.1,gamma=0.07 and default degree -----------------------------------------
+svmfit_polynomial_cost0.1_degreedf_gamma0.07=svm(default_payment_next_month~.,data=data,subset=train,kernel="polynomial",cost=0.1,gamma=0.07)
+summary(svmfit_polynomial_cost0.1_degreedf_gamma0.07)
+
+#Training error rate
+default_payment_next_month_pred_svm_polynomial_train_cost0.1_degreedf_gamma0.07=predict(svmfit_polynomial_cost0.1_degreedf_gamma0.07,data.train)
+table(default_payment_next_month_pred_svm_polynomial_train_cost0.1_degreedf_gamma0.07,default_payment_next_month.train)
+mean(default_payment_next_month_pred_svm_polynomial_train_cost0.1_degreedf_gamma0.07!=default_payment_next_month.train) 
+
+#Test error rate 
+default_payment_next_month_pred_svm_polynomial_test_cost0.1_degreedf_gamma0.07=predict(svmfit_polynomial_cost0.1_degreedf_gamma0.07,data.test)
+table(default_payment_next_month_pred_svm_polynomial_test_cost0.1_degreedf_gamma0.07,default_payment_next_month.test)
+mean(default_payment_next_month_pred_svm_polynomial_test_cost0.1_degreedf_gamma0.07!=default_payment_next_month.test) 
+
+
+#cost=0.1,gamma=0.01 and default degree -----------------------------------------
+svmfit_polynomial_cost0.1_degreedf_gamma0.01=svm(default_payment_next_month~.,data=data,subset=train,kernel="polynomial",cost=0.1,gamma=0.01)
+summary(svmfit_polynomial_cost0.1_degreedf_gamma0.01)
+
+#Training error rate
+default_payment_next_month_pred_svm_polynomial_train_cost0.1_degreedf_gamma0.01=predict(svmfit_polynomial_cost0.1_degreedf_gamma0.01,data.train)
+table(default_payment_next_month_pred_svm_polynomial_train_cost0.1_degreedf_gamma0.01,default_payment_next_month.train)
+mean(default_payment_next_month_pred_svm_polynomial_train_cost0.1_degreedf_gamma0.01!=default_payment_next_month.train) 
+
+#Test error rate 
+default_payment_next_month_pred_svm_polynomial_test_cost0.1_degreedf_gamma0.01=predict(svmfit_polynomial_cost0.1_degreedf_gamma0.01,data.test)
+table(default_payment_next_month_pred_svm_polynomial_test_cost0.1_degreedf_gamma0.01,default_payment_next_month.test)
+mean(default_payment_next_month_pred_svm_polynomial_test_cost0.1_degreedf_gamma0.01!=default_payment_next_month.test) 
+
+
+
+
+
+
+
+
+
+
+
