@@ -1,0 +1,8 @@
+flask
+keras
+numpy
+pandas
+wtforms
+scikit-image
+boto3
+mysql-connector
